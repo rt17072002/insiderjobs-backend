@@ -5,6 +5,11 @@ import "dotenv/config";
 import connectDB from "./config/db.js";
 import * as Sentry from "@sentry/node";
 import { clerkWebhooks } from "./controllers/webhooks.js";
+import companyRoutes from "./routes/companyRoutes.js"
+import connectCloudinary from "./config/cloudinary.js";
+import jobRoutes from "./routes/jobRoutes.js"
+import userRoutes from "./routes/userRoutes.js"
+import {clerkMiddleware} from "@clerk/express";
 
 Sentry.init({
   dsn: "https://db9129853d1e8fad526552dc9bf5f331@o4510805486206976.ingest.us.sentry.io/4510828008833024",
@@ -20,9 +25,13 @@ const app = express();
 //connect to db
 await connectDB();
 
+//connect cloudinary
+await connectCloudinary();
+
 //middlewares
 app.use(cors());
 app.use(express.json());
+app.use(clerkMiddleware());
 
 //routes
 app.get("/", (req, res)=>{
@@ -34,6 +43,9 @@ app.get("/debug-sentry", function mainHandler(req, res) {
 });
 
 app.post("/webhooks", clerkWebhooks);
+app.use("/api/company", companyRoutes)
+app.use("/api/jobs", jobRoutes);
+app.use("/api/users", userRoutes);
 
 Sentry.setupExpressErrorHandler(app);
 
